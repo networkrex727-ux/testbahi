@@ -22,27 +22,42 @@ async function connectDatabase() {
   
   let mysqlConfig;
   try {
-    const configPath = path.join(process.cwd(), 'db-config.json');
-    if (fs.existsSync(configPath)) {
-      mysqlConfig = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-    } else {
+    // Priority: Environment Variables (Best for Vercel) -> db-config.json -> Defaults
+    if (process.env.DB_HOST) {
       mysqlConfig = {
-        user: 'primekha_fh',
-        host: '51.195.40.96',
-        database: 'primekha_fh',
-        password: 'A6yV2HCv@VeEFt2',
-        port: 3306
+        host: process.env.DB_HOST,
+        user: process.env.DB_USER,
+        password: process.env.DB_PASSWORD,
+        database: process.env.DB_NAME,
+        port: parseInt(process.env.DB_PORT || '3306')
       };
+      console.log('Using Database configuration from Environment Variables');
+    } else {
+      const configPath = path.join(process.cwd(), 'db-config.json');
+      if (fs.existsSync(configPath)) {
+        mysqlConfig = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+        console.log('Using Database configuration from db-config.json');
+      } else {
+        mysqlConfig = {
+          user: 'primekha_fh',
+          host: '51.195.40.96',
+          database: 'primekha_fh',
+          password: 'A6yV2HCv@VeEFt2',
+          port: 3306
+        };
+        console.log('Using default Database configuration');
+      }
     }
     
     mysqlConfig = {
       ...mysqlConfig,
       waitForConnections: true,
       connectionLimit: 10,
-      queueLimit: 0
+      queueLimit: 0,
+      connectTimeout: 10000 // 10 seconds timeout
     };
   } catch (err) {
-    console.error('Failed to read db-config.json:', err);
+    console.error('Failed to resolve database configuration:', err);
     return;
   }
 
