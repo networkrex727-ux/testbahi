@@ -61,18 +61,12 @@ export const Dashboard: React.FC = () => {
           <TrendingUp className="w-12 h-12 text-zinc-700" />
         </div>
         <div className="space-y-2">
-          <h2 className="text-2xl font-black tracking-tight">No Anime Found</h2>
+          <h2 className="text-2xl font-black tracking-tight">Database Connection Issue</h2>
           <p className="text-zinc-500 max-w-md mx-auto">
-            Database se connection establish nahi ho pa raha ya koi anime add nahi kiya gaya hai. 
-            Agar aap admin hain, toh settings check karein.
+            Website aapke database se connect nahi ho pa rahi hai. 
+            Upar diye gaye <span className="text-red-500 font-bold">SETUP DATABASE</span> button par click karke details enter karein.
           </p>
         </div>
-        <Link 
-          to="/admin/settings" 
-          className="bg-blue-600 text-white px-8 py-3 rounded-2xl font-black text-sm hover:bg-blue-500 transition-all shadow-xl shadow-blue-600/20"
-        >
-          CHECK DB SETTINGS
-        </Link>
       </div>
     );
   }

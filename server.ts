@@ -284,6 +284,34 @@ const authenticateToken = (req: any, res: any, next: any) => {
 
 async function startServer() {
   // API Routes
+  // Public DB Config (Only accessible when DB is NOT connected)
+  app.post('/api/public/db-config', async (req, res) => {
+    if (db) {
+      return res.status(403).json({ error: 'Database is already connected. Use Admin Settings to change configuration.' });
+    }
+
+    const newConfig = req.body;
+    try {
+      const configPath = path.join(process.cwd(), 'db-config.json');
+      fs.writeFileSync(configPath, JSON.stringify(newConfig, null, 2));
+      
+      // Try to connect with new config
+      await connectDatabase();
+      
+      if (!db) {
+        throw new Error('Could not connect with provided credentials. Please check host, user, and password.');
+      }
+
+      // Setup database schema on new DB
+      await setupDatabase();
+      
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error('Public DB config failed:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   app.get('/api/health', (req, res) => {
     res.json({ 
       status: 'ok', 
