@@ -34,15 +34,26 @@ export const DatabaseStatus: React.FC = () => {
 
   const handleSetupSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (saving) return;
+    
     setSaving(true);
     try {
-      await api.post('/api/public/db-config', dbConfig);
-      toast.success("Database connected successfully!");
-      setDbConnected(true);
-      setShowSetup(false);
-      window.location.reload();
+      const response = await api.post('/api/public/db-config', dbConfig);
+      if (response.data.success) {
+        toast.success("Database connected successfully!");
+        setDbConnected(true);
+        setShowSetup(false);
+        // Small delay before reload to let user see success
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+      } else {
+        throw new Error(response.data.error || "Unknown error occurred");
+      }
     } catch (error: any) {
-      toast.error(error.response?.data?.error || "Failed to connect to database");
+      console.error('Setup failed:', error);
+      const message = error.response?.data?.error || error.message || "Failed to connect to database";
+      toast.error(message, { duration: 5000 });
     } finally {
       setSaving(false);
     }

@@ -16,14 +16,18 @@ const PORT = 3000;
 
 // Database configuration
 let db: any;
+let inMemoryConfig: any = null;
 
 async function connectDatabase() {
   if (db) return;
   
   let mysqlConfig;
   try {
-    // Priority: Environment Variables (Best for Vercel) -> db-config.json -> Defaults
-    if (process.env.DB_HOST) {
+    // Priority: In-Memory (for Vercel session) -> Environment Variables -> db-config.json -> Defaults
+    if (inMemoryConfig) {
+      mysqlConfig = inMemoryConfig;
+      console.log('Using Database configuration from In-Memory fallback');
+    } else if (process.env.DB_HOST) {
       mysqlConfig = {
         host: process.env.DB_HOST,
         user: process.env.DB_USER,
@@ -292,8 +296,22 @@ async function startServer() {
 
     const newConfig = req.body;
     try {
-      const configPath = path.join(process.cwd(), 'db-config.json');
-      fs.writeFileSync(configPath, JSON.stringify(newConfig, null, 2));
+      // Try to save to file (works in local/standard hosting)
+      try {
+        const configPath = path.join(process.cwd(), 'db-config.json');
+        fs.writeFileSync(configPath, JSON.stringify(newConfig, null, 2));
+      } catch (fsError) {
+        console.warn('Could not write to db-config.json (likely Vercel). Using in-memory fallback.');
+      }
+      
+      // Always update in-memory config for the current process
+      inMemoryConfig = {
+        ...newConfig,
+        waitForConnections: true,
+        connectionLimit: 10,
+        queueLimit: 0,
+        connectTimeout: 10000
+      };
       
       // Try to connect with new config
       await connectDatabase();
@@ -313,10 +331,16 @@ async function startServer() {
   });
 
   app.get('/api/health', (req, res) => {
+    let clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '';
+    if (Array.isArray(clientIp)) clientIp = clientIp[0];
+    if (typeof clientIp === 'string' && clientIp.includes(',')) {
+      clientIp = clientIp.split(',')[0].trim();
+    }
+
     res.json({ 
       status: 'ok', 
       dbConnected: !!db,
-      ip: req.headers['x-forwarded-for'] || req.socket.remoteAddress
+      ip: clientIp
     });
   });
 

@@ -54,7 +54,7 @@ export const Dashboard: React.FC = () => {
     );
   }
 
-  if (animes.length === 0) {
+  if (!Array.isArray(animes) || animes.length === 0) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center text-center space-y-6 p-8">
         <div className="w-24 h-24 bg-zinc-900 rounded-full flex items-center justify-center border border-zinc-800">
@@ -63,8 +63,11 @@ export const Dashboard: React.FC = () => {
         <div className="space-y-2">
           <h2 className="text-2xl font-black tracking-tight">Database Connection Issue</h2>
           <p className="text-zinc-500 max-w-md mx-auto">
-            Website aapke database se connect nahi ho pa rahi hai. 
+            Website aapke database se connect nahi ho pa rahi hai ya data empty hai. 
             Upar diye gaye <span className="text-red-500 font-bold">SETUP DATABASE</span> button par click karke details enter karein.
+          </p>
+          <p className="text-[10px] text-zinc-600 mt-4">
+            Tip: Agar aap Vercel par hain, toh cPanel mein <code className="bg-zinc-800 px-1 rounded">%</code> whitelist karna zaroori hai.
           </p>
         </div>
       </div>
