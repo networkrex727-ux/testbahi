@@ -11,7 +11,7 @@ import fs from 'fs';
 
 dotenv.config();
 
-const app = express();
+export const app = express();
 const PORT = 3000;
 
 // Database configuration
@@ -76,10 +76,21 @@ async function query(text: string, params: any[] = []) {
       throw new Error('Database connection not established');
     }
   }
+
+  // Find all $N placeholders in the order they appear
+  const matches = text.match(/\$\d+/g) || [];
+  const mysqlParams: any[] = [];
+  
+  // Map each placeholder to its value in params
+  matches.forEach(match => {
+    const index = parseInt(match.substring(1)) - 1;
+    mysqlParams.push(params[index] === undefined ? null : params[index]);
+  });
+
   // Convert $1, $2 to ? for MySQL
   const mysqlText = text.replace(/\$\d+/g, '?');
-  const sanitizedParams = params.map(p => p === undefined ? null : p);
-  const [rows] = await db.execute(mysqlText, sanitizedParams);
+  
+  const [rows] = await db.execute(mysqlText, mysqlParams);
   return { rows: Array.isArray(rows) ? rows : [rows], insertId: (rows as any).insertId };
 }
 
@@ -889,19 +900,29 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, '0.0.0.0', async () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-    
-    // Connect to database in the background after server is up
-    try {
-      await connectDatabase();
-      if (db) {
-        await setupDatabase();
+  if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+    app.listen(PORT, '0.0.0.0', async () => {
+      console.log(`Server running on http://localhost:${PORT}`);
+      
+      // Connect to database in the background after server is up
+      try {
+        await connectDatabase();
+        if (db) {
+          await setupDatabase();
+        }
+      } catch (error) {
+        console.error('Background database initialization failed:', error);
       }
-    } catch (error) {
-      console.error('Background database initialization failed:', error);
-    }
-  });
+    });
+  } else {
+    // In Vercel, we need to initialize DB on the first request or here
+    // But since Vercel functions are stateless, we'll try to connect when needed
+    connectDatabase().then(() => {
+      if (db) setupDatabase();
+    }).catch(console.error);
+  }
 }
 
 startServer();
+
+export default app;

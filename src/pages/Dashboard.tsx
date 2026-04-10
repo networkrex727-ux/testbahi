@@ -54,6 +54,29 @@ export const Dashboard: React.FC = () => {
     );
   }
 
+  if (animes.length === 0) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center text-center space-y-6 p-8">
+        <div className="w-24 h-24 bg-zinc-900 rounded-full flex items-center justify-center border border-zinc-800">
+          <TrendingUp className="w-12 h-12 text-zinc-700" />
+        </div>
+        <div className="space-y-2">
+          <h2 className="text-2xl font-black tracking-tight">No Anime Found</h2>
+          <p className="text-zinc-500 max-w-md mx-auto">
+            Database se connection establish nahi ho pa raha ya koi anime add nahi kiya gaya hai. 
+            Agar aap admin hain, toh settings check karein.
+          </p>
+        </div>
+        <Link 
+          to="/admin/settings" 
+          className="bg-blue-600 text-white px-8 py-3 rounded-2xl font-black text-sm hover:bg-blue-500 transition-all shadow-xl shadow-blue-600/20"
+        >
+          CHECK DB SETTINGS
+        </Link>
+      </div>
+    );
+  }
+
   const featured = featuredAnimes[currentBannerIndex] || {
     id: 'default',
     title: "Welcome to SahidAnime",
