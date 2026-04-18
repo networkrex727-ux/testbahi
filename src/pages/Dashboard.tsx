@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAnime } from '../context/AnimeContext';
 import { useTheme } from '../context/ThemeContext';
-import { Play, Star, Clock, TrendingUp, ChevronRight } from 'lucide-react';
+import { Play, Star, Clock, TrendingUp, ChevronRight, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../lib/utils';
 
@@ -56,19 +56,37 @@ export const Dashboard: React.FC = () => {
 
   if (!Array.isArray(animes) || animes.length === 0) {
     return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center text-center space-y-6 p-8">
-        <div className="w-24 h-24 bg-zinc-900 rounded-full flex items-center justify-center border border-zinc-800">
-          <TrendingUp className="w-12 h-12 text-zinc-700" />
+      <div className="min-h-[80vh] flex flex-col items-center justify-center text-center space-y-8 p-8 max-w-2xl mx-auto">
+        <div className="relative">
+          <div className="w-32 h-32 bg-red-500/10 rounded-full flex items-center justify-center border border-red-500/20">
+            <TrendingUp className="w-16 h-16 text-red-500" />
+          </div>
+          <div className="absolute -top-2 -right-2 w-10 h-10 bg-zinc-950 border border-zinc-800 rounded-full flex items-center justify-center shadow-2xl">
+            <AlertCircle className="w-6 h-6 text-red-500 animate-pulse" />
+          </div>
         </div>
-        <div className="space-y-2">
-          <h2 className="text-2xl font-black tracking-tight">Database Connection Issue</h2>
-          <p className="text-zinc-500 max-w-md mx-auto">
-            Website aapke database se connect nahi ho pa rahi hai ya data empty hai. 
-            Upar diye gaye <span className="text-red-500 font-bold">SETUP DATABASE</span> button par click karke details enter karein.
+        
+        <div className="space-y-4">
+          <h2 className="text-4xl font-black tracking-tighter">Database Connection Issue</h2>
+          <p className="text-zinc-500 text-lg font-medium leading-relaxed">
+            Website aapke database se connect nahi ho pa rahi hai. Yeh aksar tab hota hai jab <span className="text-white">cPanel</span> mein IP whitelist nahi hoti ya details galat hoti hain.
           </p>
-          <p className="text-[10px] text-zinc-600 mt-4">
-            Tip: Agar aap Vercel par hain, toh cPanel mein <code className="bg-zinc-800 px-1 rounded">%</code> whitelist karna zaroori hai.
-          </p>
+        </div>
+
+        <div className="grid gap-4 w-full">
+          <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-6 text-left space-y-3">
+            <h3 className="text-sm font-black uppercase tracking-widest text-zinc-400">Quick Fix Steps:</h3>
+            <ul className="text-sm text-zinc-500 space-y-2">
+              <li className="flex gap-3">
+                <span className="text-blue-500 font-bold">1.</span>
+                <span>cPanel mein <b>Remote MySQL</b> par jayein aur <b>%</b> add karein.</span>
+              </li>
+              <li className="flex gap-3">
+                <span className="text-blue-500 font-bold">2.</span>
+                <span>Upar diye gaye <b>SETUP DATABASE</b> button se details re-enter karein.</span>
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
     );
