@@ -24,8 +24,14 @@ export const DatabaseStatus: React.FC = () => {
         setDbConnected(response.data.dbConnected);
         setClientIp(response.data.clientIp);
         setServerIp(response.data.serverIp);
+        
+        // Automatically show setup if DB is not connected
+        if (response.data.dbConnected === false) {
+          setShowSetup(true);
+        }
       } catch (error) {
         setDbConnected(false);
+        setShowSetup(true);
       }
     };
 
@@ -107,8 +113,31 @@ export const DatabaseStatus: React.FC = () => {
                 <div className="space-y-1">
                   <h2 className="text-2xl font-black tracking-tight">Database Setup</h2>
                   <p className="text-zinc-500 text-sm">Enter your Remote MySQL details</p>
-                  <div className="mt-2 text-[10px] bg-red-500/10 border border-red-500/20 p-2 rounded-xl text-red-400 font-bold">
-                    TIP: cPanel mein Remote MySQL whitelist karein using this IP: <span className="text-white font-mono">{serverIp}</span>
+                  <div className="mt-4 p-4 bg-blue-500/10 border border-blue-500/20 rounded-2xl space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-black uppercase text-zinc-500">Your Server IP</span>
+                      <span className="text-white font-mono font-bold text-sm bg-zinc-900 px-2 py-0.5 rounded border border-zinc-800">{serverIp}</span>
+                    </div>
+                    <p className="text-[10px] text-zinc-500 leading-tight">
+                      CPanel ke <b>Remote MySQL</b> section mein upar wali IP ko whitelist karein. Warna connection fail ho jayega.
+                    </p>
+                  </div>
+                  
+                  <div className="flex gap-2 pt-2">
+                    <button 
+                      type="button"
+                      onClick={() => setDbConfig({ host: 'localhost', user: 'root', password: '', database: 'anime_db', port: 3306 })}
+                      className="flex-1 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-[10px] font-black uppercase rounded-xl transition-all"
+                    >
+                      Local Preset
+                    </button>
+                    <button 
+                      type="button"
+                      onClick={() => setDbConfig({ host: '51.195.40.96', user: 'primekha_fh', password: '', database: 'primekha_fh', port: 3306 })}
+                      className="flex-1 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-[10px] font-black uppercase rounded-xl transition-all"
+                    >
+                      Remote Preset
+                    </button>
                   </div>
                 </div>
                 <button onClick={() => setShowSetup(false)} className="p-2 hover:bg-zinc-900 rounded-full text-zinc-500">
