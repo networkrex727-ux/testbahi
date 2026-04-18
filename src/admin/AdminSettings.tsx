@@ -19,6 +19,7 @@ export const AdminSettings: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [dbSaving, setDbSaving] = useState(false);
+  const [serverIp, setServerIp] = useState('Loading...');
   const [dbConfig, setDbConfig] = useState({
     host: '',
     user: '',
@@ -40,9 +41,10 @@ export const AdminSettings: React.FC = () => {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const [settingsRes, dbRes] = await Promise.all([
+        const [settingsRes, dbRes, healthRes] = await Promise.all([
           api.get('/admin/settings'),
-          api.get('/admin/db-config')
+          api.get('/admin/db-config'),
+          api.get('/health')
         ]);
         
         const data = settingsRes.data;
@@ -60,6 +62,10 @@ export const AdminSettings: React.FC = () => {
 
         if (dbRes.data) {
           setDbConfig(dbRes.data);
+        }
+
+        if (healthRes.data) {
+          setServerIp(healthRes.data.serverIp || 'Unknown');
         }
       } catch (error) {
         toast.error("Failed to load settings");
@@ -268,8 +274,27 @@ export const AdminSettings: React.FC = () => {
               </div>
               <div>
                 <h2 className="text-xl font-bold">Database Configuration</h2>
-                <p className="text-sm text-zinc-500">Manage Remote MySQL Connection (DANGEROUS)</p>
+                <p className="text-sm text-zinc-500">Manage MySQL Connection (DANGEROUS)</p>
+                <div className="mt-2 inline-flex items-center gap-2 px-3 py-1 bg-zinc-950 border border-zinc-800 rounded-lg">
+                  <span className="text-[10px] font-black uppercase text-zinc-500">Server Public IP:</span>
+                  <span className="text-xs font-bold text-blue-500 font-mono">{serverIp}</span>
+                  <p className="text-[10px] text-zinc-600 ml-2 italic">(Whitelisting ke liye iska istemal karein)</p>
+                </div>
               </div>
+            </div>
+            <div className="flex gap-2">
+              <button 
+                onClick={() => setDbConfig({ host: 'localhost', user: 'root', password: '', database: 'anime_db', port: 3306 })}
+                className="px-3 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-[10px] font-black uppercase rounded-lg transition-colors"
+              >
+                Local Preset
+              </button>
+              <button 
+                onClick={() => setDbConfig({ host: '51.195.40.96', user: 'primekha_fh', password: '', database: 'primekha_fh', port: 3306 })}
+                className="px-3 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-[10px] font-black uppercase rounded-lg transition-colors"
+              >
+                Remote Preset
+              </button>
             </div>
           </div>
 

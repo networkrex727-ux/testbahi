@@ -5,7 +5,8 @@ import { toast } from 'react-hot-toast';
 
 export const DatabaseStatus: React.FC = () => {
   const [dbConnected, setDbConnected] = useState<boolean | null>(null);
-  const [ip, setIp] = useState<string>('');
+  const [clientIp, setClientIp] = useState<string>('');
+  const [serverIp, setServerIp] = useState<string>('');
   const [showSetup, setShowSetup] = useState(false);
   const [saving, setSaving] = useState(false);
   const [dbConfig, setDbConfig] = useState({
@@ -21,7 +22,8 @@ export const DatabaseStatus: React.FC = () => {
       try {
         const response = await api.get('/health');
         setDbConnected(response.data.dbConnected);
-        setIp(response.data.ip);
+        setClientIp(response.data.clientIp);
+        setServerIp(response.data.serverIp);
       } catch (error) {
         setDbConnected(false);
       }
@@ -71,8 +73,8 @@ export const DatabaseStatus: React.FC = () => {
           </div>
           <div className="hidden lg:flex items-center gap-4 opacity-90 border-l border-white/20 pl-4">
             <div className="flex items-center gap-2">
-              <span>Whitelist this IP in cPanel:</span>
-              <code className="bg-black/20 px-2 py-0.5 rounded font-mono">{ip || 'Detecting...'}</code>
+              <span>Whitelist this SERVER IP in cPanel:</span>
+              <code className="bg-black/20 px-2 py-0.5 rounded font-mono text-yellow-400">{serverIp || 'Detecting...'}</code>
             </div>
           </div>
         </div>
@@ -105,6 +107,9 @@ export const DatabaseStatus: React.FC = () => {
                 <div className="space-y-1">
                   <h2 className="text-2xl font-black tracking-tight">Database Setup</h2>
                   <p className="text-zinc-500 text-sm">Enter your Remote MySQL details</p>
+                  <div className="mt-2 text-[10px] bg-red-500/10 border border-red-500/20 p-2 rounded-xl text-red-400 font-bold">
+                    TIP: cPanel mein Remote MySQL whitelist karein using this IP: <span className="text-white font-mono">{serverIp}</span>
+                  </div>
                 </div>
                 <button onClick={() => setShowSetup(false)} className="p-2 hover:bg-zinc-900 rounded-full text-zinc-500">
                   <X className="w-6 h-6" />

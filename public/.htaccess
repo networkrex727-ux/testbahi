@@ -1,0 +1,23 @@
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+  
+  # 1. API Proxing (Optional)
+  # Agar aapka Node.js server kisi aur port par chal raha hai (e.g. 3000), 
+  # toh niche wali line ko uncomment karein (hata dein #) aur port sahi karein.
+  # RewriteRule ^api/(.*)$ http://localhost:3000/api/$1 [P,L]
+
+  # 2. React Router Fix (SPA Routing)
+  # Yeh rule ensure karta hai ki refresh karne par "404 Not Found" na aaye.
+  RewriteRule ^index\.html$ - [L]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{REQUEST_FILENAME} !-l
+  RewriteRule . /index.html [L]
+</IfModule>
+
+# Security Headers
+<IfModule mod_headers.c>
+  Header set X-XSS-Protection "1; mode=block"
+  Header set X-Content-Type-Options "nosniff"
+</IfModule>

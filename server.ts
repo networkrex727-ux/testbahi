@@ -330,17 +330,26 @@ async function startServer() {
     }
   });
 
-  app.get('/api/health', (req, res) => {
+  app.get('/api/health', async (req, res) => {
     let clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '';
     if (Array.isArray(clientIp)) clientIp = clientIp[0];
     if (typeof clientIp === 'string' && clientIp.includes(',')) {
       clientIp = clientIp.split(',')[0].trim();
     }
 
+    let serverPublicIp = 'Unknown';
+    try {
+      const ipRes = await fetch('https://api.ipify.org?format=json').then(r => r.json());
+      serverPublicIp = ipRes.ip;
+    } catch (e) {
+      console.warn('Could not fetch server public IP:', e);
+    }
+
     res.json({ 
       status: 'ok', 
       dbConnected: !!db,
-      ip: clientIp
+      clientIp: clientIp,
+      serverIp: serverPublicIp
     });
   });
 
@@ -671,17 +680,39 @@ async function startServer() {
     const newConfig = req.body;
     
     try {
-      const configPath = path.join(process.cwd(), 'db-config.json');
-      fs.writeFileSync(configPath, JSON.stringify(newConfig, null, 2));
+      // Try to save to file (works in local/standard hosting)
+      try {
+        const configPath = path.join(process.cwd(), 'db-config.json');
+        fs.writeFileSync(configPath, JSON.stringify(newConfig, null, 2));
+      } catch (fsError) {
+        console.warn('Could not write to db-config.json (likely Vercel). Falling back to session memory only.');
+      }
+      
+      // Update in-memory config for the current process
+      inMemoryConfig = {
+        ...newConfig,
+        waitForConnections: true,
+        connectionLimit: 10,
+        queueLimit: 0,
+        connectTimeout: 10000
+      };
       
       // Close old pool if exists
       if (db) {
-        await db.end();
+        try {
+          await db.end();
+        } catch (e) {
+          console.warn('Error closing old DB pool:', e);
+        }
         db = null;
       }
       
       // Try to connect with new config
       await connectDatabase();
+      
+      if (!db) {
+        throw new Error('Database connection failed with new credentials. Please check your host/user/password and ENSURE YOUR IP IS WHITELISTED.');
+      }
       
       // Setup database schema on new DB
       await setupDatabase();
