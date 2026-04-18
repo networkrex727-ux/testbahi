@@ -7,6 +7,7 @@ import mysql from 'mysql2/promise';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import fs from 'fs';
+import axios from 'axios';
 
 
 dotenv.config();
@@ -339,10 +340,10 @@ async function startServer() {
 
     let serverPublicIp = 'Unknown';
     try {
-      const ipRes = await fetch('https://api.ipify.org?format=json').then(r => r.json());
-      serverPublicIp = ipRes.ip;
+      const ipRes = await axios.get('https://api.ipify.org?format=json', { timeout: 3000 });
+      serverPublicIp = ipRes.data.ip;
     } catch (e) {
-      console.warn('Could not fetch server public IP:', e);
+      console.warn('Could not fetch server public IP via API, checking request properties.');
     }
 
     res.json({ 

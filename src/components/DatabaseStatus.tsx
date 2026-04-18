@@ -46,7 +46,7 @@ export const DatabaseStatus: React.FC = () => {
     
     setSaving(true);
     try {
-      const response = await api.post('/api/public/db-config', dbConfig);
+      const response = await api.post('/public/db-config', dbConfig);
       if (response.data.success) {
         toast.success("Database connected successfully!");
         setDbConnected(true);
